@@ -142,12 +142,6 @@
     var current_day = 1 - first_day; //Set to first day of current month for continuation
     var next_date = 1; //Used for numbering first days of next month in calendar
 
-    //Initialise first squares to the last days of the previous month
-    //for(var i=0; i<first_day; i++){
-    //  weeks.eq(0).children('div.day').eq(i).text(last_date_previous).addClass('prev-month');
-    //  last_date_previous++;
-  //  }
-
     //Loop through 6 rows of dates
     for(var i=0; i<6; i++){
       for(var j=0; j<7; j++){
@@ -162,6 +156,11 @@
           weeks.eq(i).children('div.day').eq(j).text(last_date_previous).addClass('prev-month');
           last_date_previous++;
         }
+        //Test if current day is today
+        if(current_day == today.date && month == today.monthNum && year == today.year){
+          weeks.eq(i).children('div.day').eq(j).addClass('today');
+        }
+
         current_day++; //Always increment, starts at 1 minus the weekday number the month starts on
       }
     }

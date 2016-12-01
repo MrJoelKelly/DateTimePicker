@@ -21,6 +21,7 @@
   //Holds our default options, will be updated based on user-set options
   var default_options = {
     lang: "en",
+    multiple: false,
     style: "default",
     defaultTime: "12:00",
     defaultMonth: "",
@@ -31,6 +32,13 @@
 
   var today = getCurrentDate();
   var element;
+
+  var selected = { //Selected calendar day element
+    dates: [
+
+    ],
+    time: ''
+  };
 
   function getCurrentDate(){
     var now = new Date();
@@ -78,16 +86,27 @@
           //If a valid option from system_options
           if(!(options[key] in system_options[key])) continue //Skips rest of loop if the key doesn't have a valid value within system_options
         }
+
         //Validation tests
-        valid = true; //Presume validity
+        valid = false; //Presume invalidity
         switch(key){
-          case 'defaultTime':
+          case 'defaultTime': //Only allows HH:MM format
             var hhmm_test = /([01]\d|2[0-3]):?([0-5]\d)/
-            if(!hhmm_test.test(options[key])){
-              valid = false;
+            if(hhmm_test.test(options[key])){
+              valid = true;
             }
             break;
+          case 'multiple': //Only allows true/false in string and boolean versions
+            var validOptions = [true, false, "true", "false"];
+            if(validOptions.indexOf(options[key]) >= 0){
+              valid = true;
+            }
+            break;
+          default: //Any others that don't require validation, such as buttonText
+            valid = true;
+            break;
         };
+
         if(valid){
           default_options[key] = options[key]; //Update default_options values
         }
@@ -174,8 +193,16 @@
     //Loop through 6 rows of dates
     for(var w=0; w<6; w++){
       for(var d=0; d<7; d++){
+        //Variables will be modified and used to test if the date exists in selected.
+        //Needed for when previous/next month objects are selected
+        var current_month = month;
+        var current_year = year;
+        var current_date = current_day;
+
         if((current_day > last_date) && w>=4 && d>0){ //If we're on the last row, but past the first cell and on the next month
           weeks.eq(w).children('div.day').eq(d).text(next_date).addClass('next-month');
+          current_month++;
+          current_date = next_date;
           next_date++;
         }else if((current_day > last_date) && w==5 && d==0){ //If we reach the first element of the last row and we're on the next month, remove the last row.
           weeks.eq(w).hide();
@@ -184,13 +211,25 @@
           weeks.eq(w).children('div.day').eq(d).text(current_day);
         }else if(current_day < 1){ //Previous month dates
           weeks.eq(w).children('div.day').eq(d).text(last_date_previous - first_day +1).addClass('prev-month');
+          current_month--;
+          current_date = last_date_previous - first_day +1;
           last_date_previous++;
+        }
+
+        if(current_month < 0){
+          current_year--;
+        }else if(current_month > 11){
+          current_year++;
+        }
+        if(checkSelected(current_year, current_month, current_date)){
+          weeks.eq(w).children('div.day').eq(d).addClass('selected');
         }
 
         //Test if current day is today
         if(current_day == today.date && month == today.monthNum && year == today.year){
           weeks.eq(w).children('div.day').eq(d).addClass('today');
         }
+
         weeks.eq(5).show(); //Default to show the last row, will have broken out of loop if it's not supposed to be shown
         current_day++; //Always increment, starts at 1 minus the weekday number the month starts on
       }
@@ -201,7 +240,7 @@
     //Bind button to show picker
     $('div.DateTimePicker > div.button').click(function(){
       $(this).siblings('div.picker').stop().fadeToggle(200);
-    })
+    });
 
     //Left calendar arrow
     $('div.DateTimePicker > div.picker > article.calendar > div.month-spinner > div.month-previous').click(function(){
@@ -214,7 +253,7 @@
       parent = $(this).closest('div.DateTimePicker');
 
       generateCalendar(default_options.defaultMonth, default_options.defaultYear, parent);
-    })
+    });
 
     //Right calendar arrow
     $('div.DateTimePicker > div.picker > article.calendar > div.month-spinner > div.month-next').click(function(){
@@ -227,13 +266,12 @@
       parent = $(this).closest('div.DateTimePicker');
 
       generateCalendar(default_options.defaultMonth, default_options.defaultYear, parent);
-    })
+    });
 
     //On calendar cell click
     $('div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) div.day').click(function(){
-      $(this).closest('div.DateTimePicker').find('div.day').removeClass('selected');
-      $(this).addClass('selected');
-    })
+      selectDate($(this));
+    });
 
     /* Calendar article */
     $('div.DateTimePicker div.button-calendar').click(function(){
@@ -244,7 +282,66 @@
     $('div.DateTimePicker div.button-time').click(function(){
       $(this).siblings('article.calendar').stop().slideUp(200);
       $(this).siblings('article.time').stop().slideDown(200);
-    })
+    });
+
+    //Hours/Minutes Increase
+    $('div.DateTimePicker > div.picker > article.time div.column div.arrow-up').click(function(){
+      time = $(this).siblings('div.time');
+      if($(this).parents('div.column').hasClass('hours')){
+        maxNum = 23;
+      }else{
+        maxNum = 59
+      }
+      if(time.val() == maxNum){
+        time.html('00');
+      }
+    });
+  };
+
+  //On date selection
+  function selectDate(element){
+    var date = new Date(default_options.defaultYear, default_options.defaultMonth, element.text());
+    if(default_options.multiple){
+      if(element.hasClass('selected')){ //If already selected, remove from array
+        selected.dates.splice(selected.dates.indexOf(date), 1);
+        element.removeClass('selected');
+      }else{
+        element.addClass('selected');
+        selected.dates.push(date);
+      }
+    }else{
+      selected.dates.pop();
+      element.closest('div.month').find('div.week:not(.header) div.day').removeClass('selected');
+      element.addClass('selected');
+      selected.dates.push(date);
+    };
+    updateButtonText(element);
+  }
+
+  //Used to check if a date has already been selected
+  function checkSelected(year, month, date){
+    var full_date = new Date(year, month, date),
+        serialised_dates = selected.dates.map(Number).indexOf(+full_date);
+    if(serialised_dates >= 0){
+      console.log(selected.dates)
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function updateButtonText(element){
+    var button = element.closest('div.DateTimePicker').children('div.button');
+    var num_selected = selected.dates.length;
+    var new_text = default_options.buttonText; //Default to reverting back to default text
+
+    if(num_selected == 1){ //Shows full date text on button if singular selection
+      new_text = selected.dates[0].getDate() + ' ' + system_options.lang[default_options.lang].month[selected.dates[0].getMonth()] + ' ' + selected.dates[0].getFullYear();
+    }else if(num_selected > 1){
+      new_text = selected.dates.length + ' Dates Selected';
+    }
+
+    button.html(new_text);
   }
 
 })(jQuery);

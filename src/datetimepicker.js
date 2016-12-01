@@ -300,8 +300,27 @@
 
   //On date selection
   function selectDate(element){
-    var date = new Date(default_options.defaultYear, default_options.defaultMonth, element.text());
-    if(default_options.multiple){
+    var month = default_options.defaultMonth,
+        year = default_options.defaultYear;
+    //Test if element is a next or previous month button and adjust dates accordingly
+    if(element.hasClass('prev-month')){
+      if(default_options.defaultMonth == 0){
+        month = 11;
+        year = default_options.defaultYear-1;
+      }else{
+        month--;
+      }
+    }else if(element.hasClass('next-month')){
+      if(default_options.defaultMonth == 11){
+        month = 0;
+        year = default_options.defaultYear+1;
+      }else{
+        month++;
+      }
+    }
+
+    var date = new Date(year, month, element.text());
+    if(default_options.multiple){ //If multiple element selection allowed
       if(element.hasClass('selected')){ //If already selected, remove from array
         selected.dates.splice(selected.dates.indexOf(date), 1);
         element.removeClass('selected');
@@ -323,7 +342,6 @@
     var full_date = new Date(year, month, date),
         serialised_dates = selected.dates.map(Number).indexOf(+full_date);
     if(serialised_dates >= 0){
-      console.log(selected.dates)
       return true;
     }else{
       return false;

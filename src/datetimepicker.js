@@ -68,6 +68,7 @@
     if(html_lang in system_options.lang){
       default_options.lang = html_lang;
     }
+
     //Iterate through keys given in users options
     for(var key in options){
       //If exists in default_options, these are user-definable options
@@ -77,7 +78,19 @@
           //If a valid option from system_options
           if(!(options[key] in system_options[key])) continue //Skips rest of loop if the key doesn't have a valid value within system_options
         }
-        default_options[key] = options[key]; //Update default_options values
+        //Validation tests
+        valid = true; //Presume validity
+        switch(key){
+          case 'defaultTime':
+            var hhmm_test = /([01]\d|2[0-3]):?([0-5]\d)/
+            if(!hhmm_test.test(options[key])){
+              valid = false;
+            }
+            break;
+        };
+        if(valid){
+          default_options[key] = options[key]; //Update default_options values
+        }
       }
     }
   };
@@ -93,7 +106,11 @@
       calendarMonthSpinner: '<div class="month-spinner"><div class="month-previous arrow-left"></div><div class="month-text"></div><div class="month-next arrow-right"></div></div>',
       calendarMonth: '<div class="month"></div>',
       calendarWeek: '<div class="week"><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div></div>',
-      calendarDay: '<div class="day"></div>'
+      calendarDay: '<div class="day"></div>',
+      time_button: '<div class="button-time"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 14h-7v-8h2v6h5v2z"/></svg></div>',
+      time: '<article class="time"><div class="flex-wrap"></div></article>',
+      timeColumn: '<div class="column"><div class="arrow-up"></div><div class="time"></div><div class="arrow-down"></div></div>'
+
     }
     //Initiate element. Remove all existing classes and empty content
     element.empty().removeClass().addClass('DateTimePicker');
@@ -129,6 +146,17 @@
 
     //Add calendar days
     generateCalendar(default_options.defaultMonth, default_options.defaultYear,element);
+
+    //Add time button
+    picker.append(layout.time_button).append(layout.time);
+
+    var time_wrap = picker.find('article.time > div.flex-wrap'); //Flex wrapper of time columns
+    time_wrap.append(layout.timeColumn);
+    time_wrap.children('div.column').addClass('hours').children('div.time').append(default_options.defaultTime.substring(0,2));
+    time_wrap.append(layout.timeColumn);
+    time_wrap.children('div.column:last-child').empty().append(':');
+    time_wrap.append(layout.timeColumn);
+    time_wrap.children('div.column:last-child').addClass('minutes').children('div.time').append(default_options.defaultTime.substring(3,5));
   };
 
   function generateCalendar(month,year,element){
@@ -205,6 +233,17 @@
     $('div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) div.day').click(function(){
       $(this).closest('div.DateTimePicker').find('div.day').removeClass('selected');
       $(this).addClass('selected');
+    })
+
+    /* Calendar article */
+    $('div.DateTimePicker div.button-calendar').click(function(){
+      $(this).siblings('article.time').stop().slideUp(200);
+      $(this).siblings('article.calendar').stop().slideDown(200);
+    })
+    /* Time article */
+    $('div.DateTimePicker div.button-time').click(function(){
+      $(this).siblings('article.calendar').stop().slideUp(200);
+      $(this).siblings('article.time').stop().slideDown(200);
     })
   }
 

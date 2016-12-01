@@ -9,5 +9,5 @@ $(document).ready(function(){
     $('article.design article.time').stop().slideDown(200);
   })
 
-  $('article.functional > div').dateTimePicker({lang:'en', defaultTime: '13:00', buttonText: 'Start Date', startDay: 0, defaultMonth: 11});
+  $('article.functional > div').dateTimePicker({lang:'en', defaultTime: '13:00', buttonText: 'Start Date', startDay: 0});
 })

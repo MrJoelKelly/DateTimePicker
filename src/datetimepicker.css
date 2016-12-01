@@ -217,6 +217,11 @@ div.DateTimePicker > div.picker > article.calendar{
     /* Selected tile */
     div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.selected{
       background-color:#006AC3;
+      color:#FFFFFF;
+    }
+
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.selected:hover{
+      background-color:rgba(0,106,195,0.4);
     }
 
     div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day:hover{

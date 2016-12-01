@@ -51,6 +51,7 @@
     setOptions(options);
 
     createPicker();
+    bindElements();
   };
 
   //Sets some default_options that need processing first
@@ -98,16 +99,10 @@
     var picker = element.children('div.picker');
     picker.append(layout.loader); //Loading spinner
 
-    //Bind button to show picker
-    $('div.DateTimePicker > div.button').click(function(){
-      $(this).siblings('div.picker').stop().fadeToggle(200);
-    })
-
     //Add calendar
     picker.append(layout.calendar_button).append(layout.calendar);
     var calendar = picker.children('article.calendar');
     calendar.append(layout.calendarMonthSpinner);
-    calendar.find('div.month-text').text(system_options.lang[default_options.lang].month[default_options.defaultMonth] + ' ' + default_options.defaultYear); //Set initial spinner month and year based on set options
     calendar.append(layout.calendarMonth);
     var calendarMonth = calendar.children('div.month');
 
@@ -133,37 +128,80 @@
   };
 
   function generateCalendar(month,year,element){
+    element.find('div.month-text').text(system_options.lang[default_options.lang].month[default_options.defaultMonth] + ' ' + default_options.defaultYear); //Set initial spinner month and year based on set options
+
     weeks = element.find('article.calendar div.week').not('.header');
-    weeks.children('.day').empty(); //Empty all existing day entries
+    weeks.children('.day').empty().removeClass('prev-month next-month today selected'); //Empty all existing day entries
 
     var first_day = new Date(year, month, 1).getDay(); //First weekday of selected month
     var last_date = new Date(year, month+1, 0).getDate(); //Last DATE of selected month
-    var last_date_previous = new Date(year, month, 0).getDate() - first_day + 1; //Last DATE of the previous month
-    var current_day = 1 - first_day; //Set to first day of current month for continuation
+    var last_date_previous = new Date(year, month, 0).getDate(); //Last DATE of the previous month
+    var current_day = 1 - first_day ; //Set to first day of current month for continuation
     var next_date = 1; //Used for numbering first days of next month in calendar
 
     //Loop through 6 rows of dates
-    for(var i=0; i<6; i++){
-      for(var j=0; j<7; j++){
-        if((current_day > last_date) && i==5 && j>0){ //If we're on the last row, but past the first cell and on the next month
-          weeks.eq(i).children('div.day').eq(j).text(next_date).addClass('next-month');
+    for(var w=0; w<6; w++){
+      for(var d=0; d<7; d++){
+        if((current_day > last_date) && w>=4 && d>0){ //If we're on the last row, but past the first cell and on the next month
+          weeks.eq(w).children('div.day').eq(d).text(next_date).addClass('next-month');
           next_date++;
-        }else if((current_day > last_date) && i==5 && j==0){ //If we reach the first element of the last row and we're on the next month, remove the last row.
-          weeks.eq(i).remove();
-        }else if((i==0 && j >= first_day) || (i > 0 && current_day <= last_date)){ // If we're past the first weekday of the first of the month or within the date range
-          weeks.eq(i).children('div.day').eq(j).text(current_day);
-        }else{ //Previous month dates
-          weeks.eq(i).children('div.day').eq(j).text(last_date_previous).addClass('prev-month');
+        }else if((current_day > last_date) && w==5 && d==0){ //If we reach the first element of the last row and we're on the next month, remove the last row.
+          weeks.eq(w).hide();
+          break;
+        }else if((w==0 && d >= first_day) || (w > 0 && current_day <= last_date)){ // If we're past the first weekday of the first of the month or within the date range
+          weeks.eq(w).children('div.day').eq(d).text(current_day);
+        }else if(current_day < 1){ //Previous month dates
+          weeks.eq(w).children('div.day').eq(d).text(last_date_previous - first_day +1).addClass('prev-month');
           last_date_previous++;
         }
+
         //Test if current day is today
         if(current_day == today.date && month == today.monthNum && year == today.year){
-          weeks.eq(i).children('div.day').eq(j).addClass('today');
+          weeks.eq(w).children('div.day').eq(d).addClass('today');
         }
-
+        weeks.eq(5).show(); //Default to show the last row, will have broken out of loop if it's not supposed to be shown
         current_day++; //Always increment, starts at 1 minus the weekday number the month starts on
       }
     }
+  }
+
+  function bindElements(){
+    //Bind button to show picker
+    $('div.DateTimePicker > div.button').click(function(){
+      $(this).siblings('div.picker').stop().fadeToggle(200);
+    })
+
+    //Left calendar arrow
+    $('div.DateTimePicker > div.picker > article.calendar > div.month-spinner > div.month-previous').click(function(){
+      if(default_options.defaultMonth == 0){
+        default_options.defaultMonth = 11;
+        default_options.defaultYear = default_options.defaultYear-1;
+      }else{
+        default_options.defaultMonth = default_options.defaultMonth-1;
+      }
+      parent = $(this).closest('div.DateTimePicker');
+
+      generateCalendar(default_options.defaultMonth, default_options.defaultYear, parent);
+    })
+
+    //Right calendar arrow
+    $('div.DateTimePicker > div.picker > article.calendar > div.month-spinner > div.month-next').click(function(){
+      if(default_options.defaultMonth == 11){
+        default_options.defaultMonth = 0;
+        default_options.defaultYear = default_options.defaultYear+1;
+      }else{
+        default_options.defaultMonth = default_options.defaultMonth+1;
+      }
+      parent = $(this).closest('div.DateTimePicker');
+
+      generateCalendar(default_options.defaultMonth, default_options.defaultYear, parent);
+    })
+
+    //On calendar cell click
+    $('div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) div.day').click(function(){
+      $(this).closest('div.DateTimePicker').find('div.day').removeClass('selected');
+      $(this).addClass('selected');
+    })
   }
 
 })(jQuery);

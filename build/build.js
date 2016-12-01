@@ -1,4 +1,5 @@
 $(document).ready(function(){
+
   $('article.design div.DateTimePicker div.button-calendar').click(function(){
     $('article.design article.time').stop().slideUp(200);
     $('article.design article.calendar').stop().slideDown(200);
@@ -8,5 +9,5 @@ $(document).ready(function(){
     $('article.design article.time').stop().slideDown(200);
   })
 
-  $('div.calendar').dateTimePicker({lang:'en'});
+  $('article.functional > div').dateTimePicker({lang:'en', defaultTime: '13:00', buttonText: 'Start Date', startDay: 0, defaultMonth: 6});
 })

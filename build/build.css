@@ -27,3 +27,9 @@ main{
 main > article{
   margin-top:20px;
 }
+
+article.design div.DateTimePicker > div.picker > div.button-calendar,
+article.design div.DateTimePicker > div.picker > div.button-time,
+article.design div.DateTimePicker > div.picker > article.calendar{
+  display:block;
+}

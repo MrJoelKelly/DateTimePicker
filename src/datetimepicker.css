@@ -1,9 +1,7 @@
 div.DateTimePicker{
-  width:250px;
-  margin:0 auto;
-  border:1px solid black;
-  font-size:1rem;
-
+  position:relative;
+  display:inline-block;
+  justify-content: center;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -12,11 +10,84 @@ div.DateTimePicker{
   user-select: none;
 }
 
+  div.DateTimePicker > div.button{
+    padding:5px 10px;
+    width:150px;
+    color:#FFFFFF;
+    background-color:#3E9202;
+
+    border-radius:3px;
+    cursor:pointer;
+    opacity:0.9;
+    transition:0.15s ease-in-out;
+  }
+
+  div.DateTimePicker > div.button:hover{
+    opacity:1;
+  }
+
+  div.DateTimePicker > div.picker{
+    width:250px;
+    margin:0 auto;
+    border:1px solid black;
+    font-size:1rem;
+    background-color:#FDFDFD;
+    display:none;
+    position:absolute;
+    top:30px;
+    left:-50px;
+    z-index: 10;
+  }
+
+/* CSS Loader */
+div.DateTimePicker .loader,
+div.DateTimePicker .loader:after {
+  border-radius: 50%;
+  width: 10em;
+  height: 10em;
+}
+div.DateTimePicker .loader {
+  display:none;
+  margin: 60px auto;
+  font-size: 5px;
+  position: relative;
+  text-indent: -9999em;
+  border-top: 1.1em solid rgba(0, 106, 195, 0.2);
+  border-right: 1.1em solid rgba(0, 106, 195, 0.2);
+  border-bottom: 1.1em solid rgba(0, 106, 195, 0.2);
+  border-left: 1.1em solid #006AC3;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation: load8 1.1s infinite linear;
+  animation: load8 1.1s infinite linear;
+}
+@-webkit-keyframes load8 {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes load8 {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
 /* CSS Arrows */
-.arrow-up,
-.arrow-down,
-.arrow-right,
-.arrow-left{
+div.DateTimePicker .arrow-up,
+div.DateTimePicker .arrow-down,
+div.DateTimePicker .arrow-right,
+div.DateTimePicker .arrow-left{
   width:0;
   height:0;
   cursor:pointer;
@@ -24,68 +95,76 @@ div.DateTimePicker{
   transition:0.1s linear;
 }
 
-.arrow-up:hover,
-.arrow-down:hover,
-.arrow-right:hover,
-.arrow-left:hover{
+div.DateTimePicker .arrow-up:hover,
+div.DateTimePicker .arrow-down:hover,
+div.DateTimePicker .arrow-right:hover,
+div.DateTimePicker .arrow-left:hover{
   opacity:1;
 }
 
-.arrow-up {
+div.DateTimePicker .arrow-up {
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
 
   border-bottom: 12px solid black;
 }
 
-.arrow-down {
+div.DateTimePicker .arrow-down {
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
 
   border-top: 12px solid black;
 }
 
-.arrow-right {
+div.DateTimePicker .arrow-right {
   border-top: 12px solid transparent;
   border-bottom: 12px solid transparent;
 
   border-left: 12px solid black;
 }
 
-.arrow-left {
+div.DateTimePicker .arrow-left {
   border-top: 12px solid transparent;
   border-bottom: 12px solid transparent;
 
   border-right:12px solid black;
 }
 
+/* Hide some picker elements by default before loading completed */
+div.DateTimePicker > div.picker > div.button-calendar,
+div.DateTimePicker > div.picker > div.button-time,
+div.DateTimePicker > div.picker > article.calendar,
+div.DateTimePicker > div.picker > article.time{
+
+}
+
 /* Calendar and time buttons */
-div.DateTimePicker > div.button-calendar,
-div.DateTimePicker > div.button-time{
+div.DateTimePicker > div.picker > div.button-calendar,
+div.DateTimePicker > div.picker > div.button-time{
   padding:6px 0;
   transition:0.1s ease-in-out;
   cursor:pointer;
 }
 
-div.DateTimePicker > div.button-calendar:hover,
-div.DateTimePicker > div.button-time:hover{
+div.DateTimePicker > div.picker > div.button-calendar:hover,
+div.DateTimePicker > div.picker > div.button-time:hover{
   background-color:#F9F9F9;
 }
 
-div.DateTimePicker > div.button-calendar > svg{
+div.DateTimePicker > div.picker > div.button-calendar > svg{
 
 }
 
-div.DateTimePicker > div.button-time > svg{
+div.DateTimePicker > div.picker > div.button-time > svg{
 
 }
 
 /* CALENDAR ARTICLE */
-div.DateTimePicker > article.calendar{
+div.DateTimePicker > div.picker > article.calendar{
   padding:5px;
 }
   /* Month spinner styling */
-  div.DateTimePicker > article.calendar > div.month-spinner{
+  div.DateTimePicker > div.picker > article.calendar > div.month-spinner{
     display:flex;
     flex-flow:row nowrap;
     justify-content: space-between;
@@ -94,27 +173,27 @@ div.DateTimePicker > article.calendar{
   }
 
   /* Calendar Month */
-  div.DateTimePicker > article.calendar > div.month{
+  div.DateTimePicker > div.picker > article.calendar > div.month{
     display:flex;
     flex-flow:column nowrap;
   }
 
-  div.DateTimePicker > article.calendar > div.month > div.week{
+  div.DateTimePicker > div.picker > article.calendar > div.month > div.week{
     display:flex;
     flex-flow:row nowrap;
     justify-content: center;
   }
 
-  div.DateTimePicker > article.calendar > div.month > div.week:not(.header){
+  div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header){
     margin-top:3px;
   }
 
-    div.DateTimePicker > article.calendar > div.month > div.week > div.day{
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week > div.day{
       width:30px;
       margin:0 3px;
     }
 
-    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day{
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day{
       height:25px;
       cursor:pointer;
       transition:0.05s linear;
@@ -125,30 +204,30 @@ div.DateTimePicker > article.calendar{
     }
 
     /* Previous month, today and next month tiles */
-    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.prev-month,
-    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.next-month,
-    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.today{
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.prev-month,
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.next-month,
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.today{
       background-color:#EEEEEE;
     }
 
-    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day:hover{
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day:hover{
       background-color:#AAAAAA;
     }
 
 /* TIME ARTICLE */
-div.DateTimePicker > article.time{
+div.DateTimePicker > div.picker > article.time{
   font-size:1.3em;
   display:none;
   padding:20px 5px;
 }
 
-  div.DateTimePicker > article.time > div.flex-wrap{
+  div.DateTimePicker > div.picker > article.time > div.flex-wrap{
     display:flex;
     align-items: center;
     justify-content: center;
   }
 
-  div.DateTimePicker > article.time > div.flex-wrap > div.column{
+  div.DateTimePicker > div.picker > article.time > div.flex-wrap > div.column{
     display:flex;
     flex-flow:column nowrap;
     justify-content: center;
@@ -156,6 +235,6 @@ div.DateTimePicker > article.time{
     margin:0 10px;
   }
 
-  div.DateTimePicker > article.time > div.flex-wrap > div.column > div.time{
+  div.DateTimePicker > div.picker > article.time > div.flex-wrap > div.column > div.time{
     padding:10px;
   }

@@ -58,12 +58,16 @@
   function initiateOptions(){
     default_options.defaultMonth = today.monthNum;
     default_options.defaultYear = today.year;
-    console.log(default_options)
   };
 
   //Takes user defined options and updates the default options where appropriate
   //Ignores any invalid options
   function setOptions(options){
+    //Set language based on html lang setting. Will be overwritten by manually set option
+    var html_lang = document.documentElement.getAttribute('lang');
+    if(html_lang in system_options.lang){
+      default_options.lang = html_lang;
+    }
     //Iterate through keys given in users options
     for(var key in options){
       //If exists in default_options, these are user-definable options

@@ -1,0 +1,135 @@
+div.DateTimePicker{
+  width:250px;
+  margin:0 auto;
+  border:1px solid black;
+  font-size:1rem;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* CSS Arrows */
+.arrow-up,
+.arrow-down,
+.arrow-right,
+.arrow-left{
+  width:0;
+  height:0;
+  cursor:pointer;
+  opacity:0.8;
+  transition:0.1s linear;
+}
+
+.arrow-up:hover,
+.arrow-down:hover,
+.arrow-right:hover,
+.arrow-left:hover{
+  opacity:1;
+}
+
+.arrow-up {
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+
+  border-bottom: 12px solid black;
+}
+
+.arrow-down {
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+
+  border-top: 12px solid black;
+}
+
+.arrow-right {
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+
+  border-left: 12px solid black;
+}
+
+.arrow-left {
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+
+  border-right:12px solid black;
+}
+
+/* Calendar and time buttons */
+div.DateTimePicker > div.button-calendar,
+div.DateTimePicker > div.button-time{
+  padding:6px 0;
+  transition:0.1s ease-in-out;
+  cursor:pointer;
+}
+
+div.DateTimePicker > div.button-calendar:hover,
+div.DateTimePicker > div.button-time:hover{
+  background-color:#F9F9F9;
+}
+
+div.DateTimePicker > div.button-calendar > svg{
+
+}
+
+div.DateTimePicker > div.button-time > svg{
+
+}
+
+/* CALENDAR ARTICLE */
+div.DateTimePicker > article.calendar{
+  padding:5px;
+}
+  /* Month spinner styling */
+  div.DateTimePicker > article.calendar > div.month-spinner{
+    display:flex;
+    flex-flow:row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    padding:0 5px 5px 5px;
+  }
+
+  /* Calendar Month */
+  div.DateTimePicker > article.calendar > div.month{
+    display:flex;
+    flex-flow:column nowrap;
+  }
+
+  div.DateTimePicker > article.calendar > div.month > div.week{
+    display:flex;
+    flex-flow:row nowrap;
+    justify-content: center;
+  }
+
+  div.DateTimePicker > article.calendar > div.month > div.week:not(.header){
+    margin-top:3px;
+  }
+
+    div.DateTimePicker > article.calendar > div.month > div.week > div.day{
+      width:30px;
+      margin:0 3px;
+    }
+
+    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day{
+      height:25px;
+      cursor:pointer;
+      transition:0.05s linear;
+      border:1px solid black;
+      display:flex;
+      align-items:center;
+      justify-content: center;
+    }
+
+    /* Previous and next month tiles */
+    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.prev-month,
+    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.next-month{
+      background-color:#EEEEEE;
+    }
+
+    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day:hover{
+      background-color:#AAAAAA;
+    }

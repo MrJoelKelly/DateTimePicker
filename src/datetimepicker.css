@@ -124,12 +124,38 @@ div.DateTimePicker > article.calendar{
       justify-content: center;
     }
 
-    /* Previous and next month tiles */
+    /* Previous month, today and next month tiles */
     div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.prev-month,
-    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.next-month{
+    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.next-month,
+    div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day.today{
       background-color:#EEEEEE;
     }
 
     div.DateTimePicker > article.calendar > div.month > div.week:not(.header) > div.day:hover{
       background-color:#AAAAAA;
     }
+
+/* TIME ARTICLE */
+div.DateTimePicker > article.time{
+  font-size:1.3em;
+  display:none;
+  padding:20px 5px;
+}
+
+  div.DateTimePicker > article.time > div.flex-wrap{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  div.DateTimePicker > article.time > div.flex-wrap > div.column{
+    display:flex;
+    flex-flow:column nowrap;
+    justify-content: center;
+    align-items: center;
+    margin:0 10px;
+  }
+
+  div.DateTimePicker > article.time > div.flex-wrap > div.column > div.time{
+    padding:10px;
+  }

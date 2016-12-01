@@ -23,7 +23,10 @@
     lang: "en",
     multiple: false,
     style: "default",
-    defaultTime: "12:00",
+    defaultTime: {
+      hours: 12,
+      minutes: 0
+    },
     defaultMonth: "",
     defaultYear: "",
     buttonText: "Select Date",
@@ -34,9 +37,7 @@
   var element;
 
   var selected = { //Selected calendar day element
-    dates: [
-
-    ],
+    dates: [],
     time: ''
   };
 
@@ -93,6 +94,11 @@
           case 'defaultTime': //Only allows HH:MM format
             var hhmm_test = /([01]\d|2[0-3]):?([0-5]\d)/
             if(hhmm_test.test(options[key])){
+              var time = options[key].split(":");
+              options[key] = { //Turn defaultTime into object of hours and minutes
+                hours : parseInt(time[0]),
+                minutes : parseInt(time[1])
+              }
               valid = true;
             }
             break;
@@ -170,13 +176,36 @@
     picker.append(layout.time_button).append(layout.time);
 
     var time_wrap = picker.find('article.time > div.flex-wrap'); //Flex wrapper of time columns
+    var time_string = outputTimeString(default_options.defaultTime.hours,default_options.defaultTime.minutes);
+
     time_wrap.append(layout.timeColumn);
-    time_wrap.children('div.column').addClass('hours').children('div.time').append(default_options.defaultTime.substring(0,2));
+    time_wrap.children('div.column').addClass('hours').children('div.time').append(time_string.hours);
     time_wrap.append(layout.timeColumn);
     time_wrap.children('div.column:last-child').empty().append(':');
     time_wrap.append(layout.timeColumn);
-    time_wrap.children('div.column:last-child').addClass('minutes').children('div.time').append(default_options.defaultTime.substring(3,5));
+    time_wrap.children('div.column:last-child').addClass('minutes').children('div.time').append(time_string.minutes);
   };
+
+  //Outputs HH:MM format time string with leading zeroes
+  function outputTimeString(hours,minutes){
+    //Convert both to strings first
+    hours = hours+"";
+    minutes = minutes+"";
+    //Check they're not empty
+    if(hours && minutes){
+      if(hours.length == 1){
+        hours = "0" + hours;
+      }
+      if(minutes.length == 1){
+        minutes = "0" + minutes;
+      }
+      return {
+        hours: hours,
+        minutes: minutes
+      }
+    }
+    return false;
+  }
 
   function generateCalendar(month,year,element){
     element.find('div.month-text').text(system_options.lang[default_options.lang].month[default_options.defaultMonth] + ' ' + default_options.defaultYear); //Set initial spinner month and year based on set options
@@ -217,10 +246,11 @@
         }
 
         if(current_month < 0){
-          current_year--;
+          current_year =  testYear(current_year, current_month, 'prev').year;
         }else if(current_month > 11){
-          current_year++;
+          current_year =  testYear(current_year, current_month, 'next').year;
         }
+
         if(checkSelected(current_year, current_month, current_date)){
           weeks.eq(w).children('div.day').eq(d).addClass('selected');
         }
@@ -244,27 +274,21 @@
 
     //Left calendar arrow
     $('div.DateTimePicker > div.picker > article.calendar > div.month-spinner > div.month-previous').click(function(){
-      if(default_options.defaultMonth == 0){
-        default_options.defaultMonth = 11;
-        default_options.defaultYear = default_options.defaultYear-1;
-      }else{
-        default_options.defaultMonth = default_options.defaultMonth-1;
-      }
-      parent = $(this).closest('div.DateTimePicker');
+      var new_date = testYear(default_options.defaultYear, default_options.defaultMonth, 'prev');
+      default_options.defaultYear = new_date.year;
+      default_options.defaultMonth = new_date.month;
 
+      parent = $(this).closest('div.DateTimePicker');
       generateCalendar(default_options.defaultMonth, default_options.defaultYear, parent);
     });
 
     //Right calendar arrow
     $('div.DateTimePicker > div.picker > article.calendar > div.month-spinner > div.month-next').click(function(){
-      if(default_options.defaultMonth == 11){
-        default_options.defaultMonth = 0;
-        default_options.defaultYear = default_options.defaultYear+1;
-      }else{
-        default_options.defaultMonth = default_options.defaultMonth+1;
-      }
-      parent = $(this).closest('div.DateTimePicker');
+      var new_date = testYear(default_options.defaultYear, default_options.defaultMonth, 'next');
+      default_options.defaultYear = new_date.year;
+      default_options.defaultMonth = new_date.month;
 
+      parent = $(this).closest('div.DateTimePicker');
       generateCalendar(default_options.defaultMonth, default_options.defaultYear, parent);
     });
 
@@ -285,44 +309,32 @@
     });
 
     //Hours/Minutes Increase
-    $('div.DateTimePicker > div.picker > article.time div.column div.arrow-up').click(function(){
-      time = $(this).siblings('div.time');
-      if($(this).parents('div.column').hasClass('hours')){
-        maxNum = 23;
-      }else{
-        maxNum = 59
-      }
-      if(time.val() == maxNum){
-        time.html('00');
-      }
+    $('div.DateTimePicker > div.picker > article.time div.column div.arrow-up,div.DateTimePicker > div.picker > article.time div.column div.arrow-down').click(function(){
+      var column_type = $(this).closest('div.column').attr('class').split(' '); //Get column class, hours or minutes
+      column_type.splice(column_type.indexOf("column"), 1); //Remove shared "column" class from array
+      var action = $(this).attr('class'); //Gets 'arrow-up' or 'arrow-down'
+
+      spinTime($(this).closest('article.time'), column_type, action);
     });
   };
 
   //On date selection
   function selectDate(element){
-    var month = default_options.defaultMonth,
-        year = default_options.defaultYear;
+    var test_date = {
+      month : default_options.defaultMonth,
+      year : default_options.defaultYear
+    }
     //Test if element is a next or previous month button and adjust dates accordingly
     if(element.hasClass('prev-month')){
-      if(default_options.defaultMonth == 0){
-        month = 11;
-        year = default_options.defaultYear-1;
-      }else{
-        month--;
-      }
+      test_date = testYear(test_date.year, test_date.month, 'prev');
     }else if(element.hasClass('next-month')){
-      if(default_options.defaultMonth == 11){
-        month = 0;
-        year = default_options.defaultYear+1;
-      }else{
-        month++;
-      }
+      test_date = testYear(test_date.year, test_date.month, 'next');
     }
 
-    var date = new Date(year, month, element.text());
+    var date = new Date(test_date.year, test_date.month, element.text());
     if(default_options.multiple){ //If multiple element selection allowed
       if(element.hasClass('selected')){ //If already selected, remove from array
-        selected.dates.splice(selected.dates.indexOf(date), 1);
+        selected.dates.splice(selected.dates.map(Number).indexOf(+date), 1); //Serialised to compare indexOf date objects
         element.removeClass('selected');
       }else{
         element.addClass('selected');
@@ -339,24 +351,77 @@
 
   //Used to check if a date has already been selected
   function checkSelected(year, month, date){
-    var full_date = new Date(year, month, date),
-        serialised_dates = selected.dates.map(Number).indexOf(+full_date);
-    if(serialised_dates >= 0){
+    var full_date = new Date(year, month, date);
+    if(selected.dates.map(Number).indexOf(+full_date) >= 0){ //Date object has to be serialised  to be compared
       return true;
-    }else{
-      return false;
     }
+    return false;
   }
 
+  //Test whether the year and month need to be changed if it's going back/forward a year
+  //Valid 'test' parameters are 'prev' and 'next'
+  function testYear(year, month, test){
+    if(test === 'prev' || test === 'next'){
+      switch(test){
+        case 'prev':
+          if(month <= 0){
+            month = 11;
+            year--;
+          }else{
+            month--;
+          }
+          break;
+        case 'next':
+          if(month >= 11){
+            month = 0;
+            year++;
+          }else{
+            month++;
+          }
+          break;
+      }
+      return {
+        month: month,
+        year: year
+      }
+    }
+    return false; //Returns false if an invalid test parameter is passed
+  };
+
+  //Changes time spinners
+  //Element is parent article.time, column is hours or minutes, action is arrow-up or arrow-down
+  function spinTime(element, column, action){
+    //Validate parameters
+    if(column == 'hours' || column == 'minutes'){
+      var hours = {
+        min: 0,
+        max: 23,
+        current: default_options.defaultTime.hours
+      };
+      var minutes = {
+        min: 0,
+        max: 59,
+        current: default_options.defaultTime.minutes
+      }
+      console.log(hours,minutes)
+      if(action == 'arrow-up' || action == 'arrow-down'){
+
+      }
+    }
+    return false;
+  }
+
+  //Used to update the text of the button to open the picker
   function updateButtonText(element){
     var button = element.closest('div.DateTimePicker').children('div.button');
     var num_selected = selected.dates.length;
     var new_text = default_options.buttonText; //Default to reverting back to default text
+    console.log(selected);
 
     if(num_selected == 1){ //Shows full date text on button if singular selection
       new_text = selected.dates[0].getDate() + ' ' + system_options.lang[default_options.lang].month[selected.dates[0].getMonth()] + ' ' + selected.dates[0].getFullYear();
     }else if(num_selected > 1){
-      new_text = selected.dates.length + ' Dates Selected';
+      new_text = num_selected + ' Dates Selected';
     }
 
     button.html(new_text);

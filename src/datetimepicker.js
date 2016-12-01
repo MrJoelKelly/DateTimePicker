@@ -27,6 +27,10 @@
       hours: 12,
       minutes: 0
     },
+    timeIncrement: {
+      hours: 1,
+      minutes: 5
+    },
     defaultMonth: "",
     defaultYear: "",
     buttonText: "Select Date",
@@ -309,7 +313,7 @@
     });
 
     //Hours/Minutes Increase
-    $('div.DateTimePicker > div.picker > article.time div.column div.arrow-up,div.DateTimePicker > div.picker > article.time div.column div.arrow-down').click(function(){
+    $("div.DateTimePicker > div.picker > article.time div.column div.arrow-up, div.DateTimePicker > div.picker > article.time div.column div.arrow-down").click(function(){
       var column_type = $(this).closest('div.column').attr('class').split(' '); //Get column class, hours or minutes
       column_type.splice(column_type.indexOf("column"), 1); //Remove shared "column" class from array
       var action = $(this).attr('class'); //Gets 'arrow-up' or 'arrow-down'
@@ -392,21 +396,42 @@
   //Element is parent article.time, column is hours or minutes, action is arrow-up or arrow-down
   function spinTime(element, column, action){
     //Validate parameters
-    if(column == 'hours' || column == 'minutes'){
-      var hours = {
-        min: 0,
-        max: 23,
-        current: default_options.defaultTime.hours
-      };
-      var minutes = {
-        min: 0,
-        max: 59,
-        current: default_options.defaultTime.minutes
+    if(element && (column == 'hours' || column == 'minutes') && (action == 'arrow-up' || action == 'arrow-down')){
+      var values = {
+        hours: {
+          min: 0,
+          max: 23,
+          current: default_options.defaultTime.hours
+        },
+        minutes: {
+          min: 0,
+          max: 59,
+          current: default_options.defaultTime.minutes
+        }
       }
-      console.log(hours,minutes)
-      if(action == 'arrow-up' || action == 'arrow-down'){
+      var time = element.find('div.' + column + ' > div.time');
 
+      switch(action){
+        case 'arrow-up': //Increase spinner
+          var new_time = values[column].current + default_options.timeIncrement[column];
+          if(new_time > values[column].max){
+            new_time = new_time - values[column].max -1;
+          }
+          default_options.defaultTime[column] = new_time;
+          break;
+
+        case 'arrow-down': //Decrease spinner
+          var new_time = values[column].current - default_options.timeIncrement[column];
+          if(new_time < values[column].min){
+            new_time = new_time + values[column].max + 1;
+          }
+          default_options.defaultTime[column] = new_time;
+          break;
       }
+
+      //Draw new values
+      var new_time = outputTimeString(default_options.defaultTime.hours,default_options.defaultTime.minutes);
+      time.html(new_time[column]);
     }
     return false;
   }

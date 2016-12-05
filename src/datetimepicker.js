@@ -48,7 +48,9 @@
     defaultMonth: "",
     defaultYear: "",
     buttonText: "Select Date",
-    startDay: "0" //Day of the week to begin the weeks on
+    startDay: "0", //Day of the week to begin the weeks on
+    calendarSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"/></svg>',
+    timeSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 14h-7v-8h2v6h5v2z"/></svg>'
   };
 
   var today = getCurrentDate();
@@ -56,7 +58,10 @@
 
   var selected = { //Selected calendar day element
     dates: [],
-    time: ''
+    time: {
+      hours: default_options.defaultTime.hours,
+      minutes: default_options.defaultTime.minutes
+    }
   };
 
   function getCurrentDate(){
@@ -118,6 +123,9 @@
                 minutes : parseInt(time[1])
               }
               valid = true;
+              //Update selected values to default to this
+              selected.time.hours = options[key].hours;
+              selected.time.minutes = options[key].minutes;
             }
             break;
           case 'multiple': //Only allows true/false in string and boolean versions
@@ -144,13 +152,13 @@
       button: '<div class="button">' + default_options.buttonText + '</div>', //Button to open picker
       picker: '<div class="picker"></div>',
       loader: '<div class="loader"></div>',
-      calendar_button: '<div class="button-calendar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"/></svg></div>',
+      calendar_button: '<div class="button-calendar">' + default_options.calendarSVG + '</div>',
       calendar: '<article class="calendar"></article>',
       calendarMonthSpinner: '<div class="month-spinner"><div class="month-previous arrow-left"></div><div class="month-text"></div><div class="month-next arrow-right"></div></div>',
       calendarMonth: '<div class="month"></div>',
       calendarWeek: '<div class="week"><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div><div class="day"></div></div>',
       calendarDay: '<div class="day"></div>',
-      time_button: '<div class="button-time"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 14h-7v-8h2v6h5v2z"/></svg></div>',
+      time_button: '<div class="button-time">' + default_options.timeSVG + '</div>',
       time: '<article class="time"><div class="flex-wrap"></div></article>',
       timeColumn: '<div class="column"><div class="arrow-up"></div><div class="time"></div><div class="arrow-down"></div></div>'
 
@@ -426,25 +434,26 @@
 
       switch(action){
         case 'arrow-up': //Increase spinner
-          var new_time = default_options.defaultTime[column] + default_options.timeIncrement[column];
+          var new_time = selected.time[column] + default_options.timeIncrement[column];
           if(new_time > validation.time[column].max){
             new_time = new_time - validation.time[column].max -1;
           }
-          default_options.defaultTime[column] = new_time;
+          selected.time[column] = new_time;
           break;
 
         case 'arrow-down': //Decrease spinner
-          var new_time = default_options.defaultTime[column] - default_options.timeIncrement[column];
+          var new_time = selected.time[column] - default_options.timeIncrement[column];
           if(new_time < validation.time[column].min){
             new_time = new_time + validation.time[column].max + 1;
           }
-          default_options.defaultTime[column] = new_time;
+          selected.time[column] = new_time;
           break;
       }
 
       //Draw new values
-      var new_time = outputTimeString(default_options.defaultTime.hours,default_options.defaultTime.minutes);
+      var new_time = outputTimeString(selected.time.hours,selected.time.minutes);
       time.html(new_time[column]);
+      updateButtonText(element);
     }
     return false;
   }
@@ -466,11 +475,12 @@
       //Validate number, if not empty and within range
       if(new_value && new_value >= validation.time[column].min && new_value <= validation.time[column].max){
         //Update saved value
-        default_options.defaultTime[column] = parseInt(new_value);
+        selected.time[column] = parseInt(new_value);
       } //else revert to previously stored number
 
-      $(this).parent('div.time').removeClass('edit-active').append(outputTimeString(default_options.defaultTime.hours,default_options.defaultTime.minutes)[column]);
+      $(this).parent('div.time').removeClass('edit-active').append(outputTimeString(selected.time.hours,selected.time.minutes)[column]);
       $(this).remove(); //Removes text input
+      updateButtonText(element);
     });
   }
 
@@ -479,15 +489,20 @@
     var button = element.closest('div.DateTimePicker').children('div.button');
     var num_selected = selected.dates.length;
     var new_text = default_options.buttonText; //Default to reverting back to default text
-    console.log(selected);
+    var time_string = outputTimeString(selected.time.hours,selected.time.minutes);
 
     if(num_selected == 1){ //Shows full date text on button if singular selection
-      new_text = selected.dates[0].getDate() + ' ' + system_options.lang[default_options.lang].month[selected.dates[0].getMonth()] + ' ' + selected.dates[0].getFullYear();
+      new_text = selected.dates[0].getDate() + ' ' + system_options.lang[default_options.lang].month[selected.dates[0].getMonth()] + ' ' + selected.dates[0].getFullYear() + ' @ ' + time_string.hours + ':' + time_string.minutes;
     }else if(num_selected > 1){
       new_text = num_selected + ' Dates Selected';
     }
 
     button.html(new_text);
+
+    //Check button height and adjust picker 'top' attr as appropriate (height + 10px)
+    var button_height = button.outerHeight();
+    console.log(button_height);
+    element.closest('div.DateTimePicker').children('div.picker').css('top', button.height() + 20);
   }
 
 })(jQuery);

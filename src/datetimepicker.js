@@ -13,8 +13,7 @@
       }
     },
     style: { //Defines class of overall DateTimePicker to set different styles
-      default: '',
-      blue: 'DTPBlue'
+      default: ''
     },
   };
 
@@ -47,6 +46,7 @@
     },
     defaultMonth: "",
     defaultYear: "",
+    allowPast: false,
     buttonText: "Select Date",
     startDay: "0", //Day of the week to begin the weeks on
     calendarSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"/></svg>',
@@ -132,9 +132,15 @@
                 selected.time.minutes = options[key].minutes;
               }
               break;
-            case 'multiple': //Only allows true/false in string and boolean versions
-              var validOptions = [true, false, "true", "false"];
+            case 'allowPast':
+            case 'multiple': //Only allows true/false in string, int and boolean versions
+              var validOptions = [true, false, "true", "false", 0, 1, "0", "1"];
               if(validOptions.indexOf(options[key]) >= 0){
+                if(options[key] == 0 || options[key] == 1 || options[key] == "0" || options[key] == "1"){
+                  options[key] = !!+options[key];
+                }
+                console.log(key)
+                console.log(options[key])
                 valid = true;
               }
               break;
@@ -255,7 +261,7 @@
     element.find('div.month-text').text(system_options.lang[default_options.lang].month[default_options.defaultMonth] + ' ' + default_options.defaultYear); //Set initial spinner month and year based on set options
 
     weeks = element.find('article.calendar div.week').not('.header');
-    weeks.children('.day').empty().removeClass('prev-month next-month today selected'); //Empty all existing day entries
+    weeks.children('.day').empty().removeClass('prev-month next-month today selected past'); //Empty all existing day entries
 
     var first_day = new Date(year, month, 1).getDay(); //First weekday of selected month
     var last_date = new Date(year, month+1, 0).getDate(); //Last DATE of selected month
@@ -295,6 +301,14 @@
           current_year =  testYear(current_year, current_month, 'next').year;
         }
 
+        //Add class to dates in the past.
+        var current_full_date = new Date(year, month, current_day);
+        var today_test = new Date(today.year, today.monthNum, today.date, 0, 0, 0, 0);
+        if(current_full_date < today_test && !default_options.allowPast){
+          weeks.eq(w).children('div.day').eq(d).addClass('past');
+        }
+
+        //If already selected
         if(checkSelected(current_year, current_month, current_date)){
           weeks.eq(w).children('div.day').eq(d).addClass('selected');
         }
@@ -382,25 +396,27 @@
       test_date = testYear(test_date.year, test_date.month, 'next');
     }
 
-    var date = new Date(test_date.year, test_date.month, element.text());
-    if(default_options.multiple){ //If multiple element selection allowed
-      if(element.hasClass('selected')){ //If already selected, remove from array
-        selected.dates.splice(selected.dates.map(Number).indexOf(+date), 1); //Serialised to compare indexOf date objects
-        element.removeClass('selected');
+    if(!element.hasClass('past') || default_options.allowPast){
+      var date = new Date(test_date.year, test_date.month, element.text());
+      if(default_options.multiple){ //If multiple element selection allowed
+        if(element.hasClass('selected')){ //If already selected, remove from array
+          selected.dates.splice(selected.dates.map(Number).indexOf(+date), 1); //Serialised to compare indexOf date objects
+          element.removeClass('selected');
+        }else{
+          element.addClass('selected');
+          selected.dates.push(date);
+        }
       }else{
+        selected.dates.pop();
+        element.closest('div.month').find('div.week:not(.header) div.day').removeClass('selected');
         element.addClass('selected');
         selected.dates.push(date);
-      }
-    }else{
-      selected.dates.pop();
-      element.closest('div.month').find('div.week:not(.header) div.day').removeClass('selected');
-      element.addClass('selected');
-      selected.dates.push(date);
-    };
-    updateButtonText(element);
+      };
+      updateButtonText(element);
 
-    //Update outputs elements for each date
-    updateOutputs(element);
+      //Update outputs elements for each date
+      updateOutputs(element);
+    }
   }
 
   //Used to check if a date has already been selected

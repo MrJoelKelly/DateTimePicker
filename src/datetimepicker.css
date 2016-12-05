@@ -205,10 +205,11 @@ div.DateTimePicker > div.picker > article.calendar{
 
     /* Previous month, today and next month tiles */
     div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.prev-month,
-    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.next-month{
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.next-month,
+    div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.past{
       background-color:#EEEEEE;
     }
-
+    
     /* Today tile */
     div.DateTimePicker > div.picker > article.calendar > div.month > div.week:not(.header) > div.day.today{
       background-color:rgba(62,146,2,0.2);

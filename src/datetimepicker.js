@@ -50,7 +50,8 @@
     buttonText: "Select Date",
     startDay: "0", //Day of the week to begin the weeks on
     calendarSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"/></svg>',
-    timeSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 14h-7v-8h2v6h5v2z"/></svg>'
+    timeSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 14h-7v-8h2v6h5v2z"/></svg>',
+    inputName: 'DateTimePicker' //Used to prepend hidden input id's. Will be set to element ID if exists and not set by user
   };
 
   var today = getCurrentDate();
@@ -103,45 +104,56 @@
 
     //Iterate through keys given in users options
     for(var key in options){
-      //If exists in default_options, these are user-definable options
-      if(key in default_options){
-        //If the key exists in system_options, we need to check that the parameter passed is also valid
-        if(key in system_options){
-          //If a valid option from system_options
-          if(!(options[key] in system_options[key])) continue //Skips rest of loop if the key doesn't have a valid value within system_options
-        }
+      //Check not empty value
+      var empty_test = options[key]+=""; //Convert to string to perform boolean test
+      if(empty_test){ //If value not empty
+        //If exists in default_options, these are user-definable options
+        if(key in default_options){
+          //If the key exists in system_options, we need to check that the parameter passed is also valid
+          if(key in system_options){
+            //If a valid option from system_options
+            if(!(options[key] in system_options[key])) continue //Skips rest of loop if the key doesn't have a valid value within system_options
+          }
 
-        //Validation tests
-        valid = false; //Presume invalidity
-        switch(key){
-          case 'defaultTime': //Only allows HH:MM format
-            var hhmm_test = /([01]\d|2[0-3]):?([0-5]\d)/
-            if(hhmm_test.test(options[key])){
-              var time = options[key].split(":");
-              options[key] = { //Turn defaultTime into object of hours and minutes
-                hours : parseInt(time[0]),
-                minutes : parseInt(time[1])
+          //Validation tests
+          valid = false; //Presume invalidity
+          switch(key){
+            case 'defaultTime': //Only allows HH:MM format
+              var hhmm_test = /([01]\d|2[0-3]):?([0-5]\d)/
+              if(hhmm_test.test(options[key])){
+                var time = options[key].split(":");
+                options[key] = { //Turn defaultTime into object of hours and minutes
+                  hours : parseInt(time[0]),
+                  minutes : parseInt(time[1])
+                }
+                valid = true;
+                //Update selected values to default to this
+                selected.time.hours = options[key].hours;
+                selected.time.minutes = options[key].minutes;
               }
+              break;
+            case 'multiple': //Only allows true/false in string and boolean versions
+              var validOptions = [true, false, "true", "false"];
+              if(validOptions.indexOf(options[key]) >= 0){
+                valid = true;
+              }
+              break;
+            default: //Any others that don't require validation, such as buttonText
               valid = true;
-              //Update selected values to default to this
-              selected.time.hours = options[key].hours;
-              selected.time.minutes = options[key].minutes;
-            }
-            break;
-          case 'multiple': //Only allows true/false in string and boolean versions
-            var validOptions = [true, false, "true", "false"];
-            if(validOptions.indexOf(options[key]) >= 0){
-              valid = true;
-            }
-            break;
-          default: //Any others that don't require validation, such as buttonText
-            valid = true;
-            break;
-        };
+              break;
+          };
 
-        if(valid){
-          default_options[key] = options[key]; //Update default_options values
+          if(valid){
+            default_options[key] = options[key]; //Update default_options values
+          }
         }
+      }
+    }
+
+    //Check if inputName has been changed, if not then check if element has an ID and set to that
+    if(default_options.inputName == 'DateTimePicker'){
+      if(element.attr('id')){
+        default_options.inputName = element.attr('id');
       }
     }
   };
@@ -160,8 +172,8 @@
       calendarDay: '<div class="day"></div>',
       time_button: '<div class="button-time">' + default_options.timeSVG + '</div>',
       time: '<article class="time"><div class="flex-wrap"></div></article>',
-      timeColumn: '<div class="column"><div class="arrow-up"></div><div class="time"></div><div class="arrow-down"></div></div>'
-
+      timeColumn: '<div class="column"><div class="arrow-up"></div><div class="time"></div><div class="arrow-down"></div></div>',
+      outputs: '<div class="outputs"></div>'
     }
     //Initiate element. Remove all existing classes and empty content
     element.empty().removeClass().addClass('DateTimePicker');
@@ -202,7 +214,7 @@
     picker.append(layout.time_button).append(layout.time);
 
     var time_wrap = picker.find('article.time > div.flex-wrap'); //Flex wrapper of time columns
-    var time_string = outputTimeString(default_options.defaultTime.hours,default_options.defaultTime.minutes);
+    var time_string = outputTimeString();
 
     time_wrap.append(layout.timeColumn);
     time_wrap.children('div.column').addClass('hours').children('div.time').append(time_string.hours);
@@ -210,13 +222,15 @@
     time_wrap.children('div.column:last-child').empty().append(':');
     time_wrap.append(layout.timeColumn);
     time_wrap.children('div.column:last-child').addClass('minutes').children('div.time').append(time_string.minutes);
+
+    element.append(layout.outputs);
   };
 
   //Outputs HH:MM format time string with leading zeroes
-  function outputTimeString(hours,minutes){
+  function outputTimeString(){
     //Convert both to strings first
-    hours = hours+"";
-    minutes = minutes+"";
+    hours = selected.time.hours+"";
+    minutes = selected.time.minutes+"";
     //Check they're not empty
     if(hours && minutes){
       //Validate digits Only
@@ -384,6 +398,9 @@
       selected.dates.push(date);
     };
     updateButtonText(element);
+
+    //Update outputs elements for each date
+    updateOutputs(element);
   }
 
   //Used to check if a date has already been selected
@@ -451,13 +468,15 @@
       }
 
       //Draw new values
-      var new_time = outputTimeString(selected.time.hours,selected.time.minutes);
+      var new_time = outputTimeString();
       time.html(new_time[column]);
       updateButtonText(element);
+      updateOutputs(element);
     }
     return false;
   }
 
+  //Creates text input upon time click
   function createTextInput(element){
     var current_time = element.text();
     element.empty().addClass('edit-active').append('<input type="text" maxlength="2" value="' + current_time + '" onkeypress=\'return event.charCode >= 48 && event.charCode <= 57\'>');
@@ -478,10 +497,28 @@
         selected.time[column] = parseInt(new_value);
       } //else revert to previously stored number
 
-      $(this).parent('div.time').removeClass('edit-active').append(outputTimeString(selected.time.hours,selected.time.minutes)[column]);
+      $(this).parent('div.time').removeClass('edit-active').append(outputTimeString()[column]);
       $(this).remove(); //Removes text input
       updateButtonText(element);
     });
+  }
+
+  //Updates the hidden inputs in div.outputs for passing through form
+  function updateOutputs(element){
+    var outputs = element.closest('div.DateTimePicker').children('div.outputs');
+    outputs.empty();
+
+    if(selected.dates.length > 0){
+      outputs.append('<input type="hidden" id="' + default_options.inputName + '-count" value="' + selected.dates.length + '">'); //Num of dates to pass to server
+
+      for(var i=0; i<selected.dates.length; i++){
+        var formatted_date = selected.dates[i].getFullYear() + "-" + (selected.dates[i].getMonth()+1) + "-" + selected.dates[i].getDate();
+        outputs.append('<input type="hidden" id="' + default_options.inputName + '-date-' + i + '" value="' + formatted_date + '">')
+      }
+
+      var time = outputTimeString();
+      outputs.append('<input type="hidden" id="' + default_options.inputName + '-time" value="' + time.hours + ':' + time.minutes + '">');
+    }
   }
 
   //Used to update the text of the button to open the picker
@@ -489,7 +526,7 @@
     var button = element.closest('div.DateTimePicker').children('div.button');
     var num_selected = selected.dates.length;
     var new_text = default_options.buttonText; //Default to reverting back to default text
-    var time_string = outputTimeString(selected.time.hours,selected.time.minutes);
+    var time_string = outputTimeString();
 
     if(num_selected == 1){ //Shows full date text on button if singular selection
       new_text = selected.dates[0].getDate() + ' ' + system_options.lang[default_options.lang].month[selected.dates[0].getMonth()] + ' ' + selected.dates[0].getFullYear() + ' @ ' + time_string.hours + ':' + time_string.minutes;
@@ -501,7 +538,6 @@
 
     //Check button height and adjust picker 'top' attr as appropriate (height + 10px)
     var button_height = button.outerHeight();
-    console.log(button_height);
     element.closest('div.DateTimePicker').children('div.picker').css('top', button.height() + 20);
   }
 

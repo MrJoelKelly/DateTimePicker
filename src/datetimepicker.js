@@ -1,3 +1,8 @@
+/*
+  jQuery DateTimePicker Plugin
+  https://github.com/MrJoelKelly/DateTimePicker
+  Joel Kelly (Joel.Kelly@keltec.systems)
+*/
 (function($){
   var system_options = {
     lang: {

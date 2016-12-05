@@ -246,9 +246,20 @@ div.DateTimePicker > div.picker > article.time{
     flex-flow:column nowrap;
     justify-content: center;
     align-items: center;
+  }
+
+  div.DateTimePicker > div.picker > article.time > div.flex-wrap > div.column.hours,
+  div.DateTimePicker > div.picker > article.time > div.flex-wrap > div.column.minutes{
+    width:50px;
     margin:0 10px;
   }
 
   div.DateTimePicker > div.picker > article.time > div.flex-wrap > div.column > div.time{
     padding:10px;
   }
+
+    div.DateTimePicker > div.picker > article.time > div.flex-wrap > div.column > div.time > input[type=text]{
+      width:30px;
+      padding:0 5px;
+      text-align: center;
+    }

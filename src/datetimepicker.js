@@ -18,6 +18,20 @@
     },
   };
 
+  //Holds min/max values and other settings
+  var validation = {
+    time: {
+      hours: {
+        min: 0,
+        max: 23
+      },
+      minutes: {
+        min:0,
+        max:59
+      }
+    }
+  }
+
   //Holds our default options, will be updated based on user-set options
   var default_options = {
     lang: "en",
@@ -197,15 +211,19 @@
     minutes = minutes+"";
     //Check they're not empty
     if(hours && minutes){
-      if(hours.length == 1){
-        hours = "0" + hours;
-      }
-      if(minutes.length == 1){
-        minutes = "0" + minutes;
-      }
-      return {
-        hours: hours,
-        minutes: minutes
+      //Validate digits Only
+      var digits = new RegExp("\\d+");
+      if(digits.test(hours) && digits.test(minutes)){
+        if(hours.length == 1){
+          hours = "0" + hours;
+        }
+        if(minutes.length == 1){
+          minutes = "0" + minutes;
+        }
+        return {
+          hours: hours,
+          minutes: minutes
+        }
       }
     }
     return false;
@@ -313,13 +331,20 @@
     });
 
     //Hours/Minutes Increase
-    $("div.DateTimePicker > div.picker > article.time div.column div.arrow-up, div.DateTimePicker > div.picker > article.time div.column div.arrow-down").click(function(){
+    $('div.DateTimePicker > div.picker > article.time div.column div.arrow-up, div.DateTimePicker > div.picker > article.time div.column div.arrow-down').click(function(){
       var column_type = $(this).closest('div.column').attr('class').split(' '); //Get column class, hours or minutes
       column_type.splice(column_type.indexOf("column"), 1); //Remove shared "column" class from array
       var action = $(this).attr('class'); //Gets 'arrow-up' or 'arrow-down'
 
       spinTime($(this).closest('article.time'), column_type, action);
     });
+
+    //On time click (manual text entry)
+    $('div.DateTimePicker article.time div.time').click(function(){
+      if(!$(this).hasClass('edit-active')){
+        createTextInput($(this))
+      }
+    })
   };
 
   //On date selection
@@ -397,33 +422,21 @@
   function spinTime(element, column, action){
     //Validate parameters
     if(element && (column == 'hours' || column == 'minutes') && (action == 'arrow-up' || action == 'arrow-down')){
-      var values = {
-        hours: {
-          min: 0,
-          max: 23,
-          current: default_options.defaultTime.hours
-        },
-        minutes: {
-          min: 0,
-          max: 59,
-          current: default_options.defaultTime.minutes
-        }
-      }
       var time = element.find('div.' + column + ' > div.time');
 
       switch(action){
         case 'arrow-up': //Increase spinner
-          var new_time = values[column].current + default_options.timeIncrement[column];
-          if(new_time > values[column].max){
-            new_time = new_time - values[column].max -1;
+          var new_time = default_options.defaultTime[column] + default_options.timeIncrement[column];
+          if(new_time > validation.time[column].max){
+            new_time = new_time - validation.time[column].max -1;
           }
           default_options.defaultTime[column] = new_time;
           break;
 
         case 'arrow-down': //Decrease spinner
-          var new_time = values[column].current - default_options.timeIncrement[column];
-          if(new_time < values[column].min){
-            new_time = new_time + values[column].max + 1;
+          var new_time = default_options.defaultTime[column] - default_options.timeIncrement[column];
+          if(new_time < validation.time[column].min){
+            new_time = new_time + validation.time[column].max + 1;
           }
           default_options.defaultTime[column] = new_time;
           break;
@@ -434,6 +447,31 @@
       time.html(new_time[column]);
     }
     return false;
+  }
+
+  function createTextInput(element){
+    var current_time = element.text();
+    element.empty().addClass('edit-active').append('<input type="text" maxlength="2" value="' + current_time + '" onkeypress=\'return event.charCode >= 48 && event.charCode <= 57\'>');
+    element.find('input[type="text"]').focus(); //Focus just added field
+
+    //When field is no longer focused
+    element.find('input[type="text"]').on('focusout keypress', function(e){
+      if(e.type === 'keypress' && e.which != 13){ //If keypress, only continues func on enter press
+        return;
+      }
+      var new_value = $(this).val().replace(/-/, ''); //Gets value and removes - char to prevent negative 0
+      var column = $(this).closest('div.column').attr('class').split(' '); //Get column class and hours or minutes
+      column.splice(column.indexOf("column"), 1); //Remove shared "column" class from array
+
+      //Validate number, if not empty and within range
+      if(new_value && new_value >= validation.time[column].min && new_value <= validation.time[column].max){
+        //Update saved value
+        default_options.defaultTime[column] = parseInt(new_value);
+      } //else revert to previously stored number
+
+      $(this).parent('div.time').removeClass('edit-active').append(outputTimeString(default_options.defaultTime.hours,default_options.defaultTime.minutes)[column]);
+      $(this).remove(); //Removes text input
+    });
   }
 
   //Used to update the text of the button to open the picker

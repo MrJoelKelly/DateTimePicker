@@ -110,7 +110,7 @@
     //Iterate through keys given in users options
     for(var key in options){
       //Check not empty value
-      var empty_test = options[key]+=""; //Convert to string to perform boolean test
+      var empty_test = options[key] + ""; //Convert to string to perform boolean test
       if(empty_test){ //If value not empty
         //If exists in default_options, these are user-definable options
         if(key in default_options){
@@ -530,15 +530,15 @@
     outputs.empty();
 
     if(selected.dates.length > 0){
-      outputs.append('<input type="hidden" id="' + default_options.inputName + '-count" value="' + selected.dates.length + '">'); //Num of dates to pass to server
+      outputs.append('<input type="hidden" id="' + default_options.inputName + '-count" name="'  + default_options.inputName + '-count" value="' + selected.dates.length + '">'); //Num of dates to pass to server
 
       for(var i=0; i<selected.dates.length; i++){
         var formatted_date = selected.dates[i].getFullYear() + "-" + (selected.dates[i].getMonth()+1) + "-" + selected.dates[i].getDate();
-        outputs.append('<input type="hidden" id="' + default_options.inputName + '-date-' + i + '" value="' + formatted_date + '">')
+        outputs.append('<input type="hidden" id="' + default_options.inputName + '-date-' + i + '" name="' + default_options.inputName + '-date-' + i + '" value="' + formatted_date + '">')
       }
 
       var time = outputTimeString();
-      outputs.append('<input type="hidden" id="' + default_options.inputName + '-time" value="' + time.hours + ':' + time.minutes + '">');
+      outputs.append('<input type="hidden" id="' + default_options.inputName + '-time" name="' + default_options.inputName + '-time" value="' + time.hours + ':' + time.minutes + '">');
     }
   }
 

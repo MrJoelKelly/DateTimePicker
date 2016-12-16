@@ -60,7 +60,7 @@ $(document).ready(function(){
 | **timeSVG** | The SVG icon for the clock button | Any full SVG HTML object, i.e. `<svg xmlns=......></svg>`  |  [Time-1 IconMonstr](http://iconmonstr.com/time-1/) |
 
 ## Outputs
-Creates `<input type="hidden">` elements within the DateTimePicker. So long as you include the initialised DateTimePicker element within your form, these will be sent to the server. If no values are selected, no inputs are created or sent to the server.
+Creates `<input type="hidden">` elements within the DateTimePicker. So long as you include the initialised DateTimePicker element within your form, these will be sent to the server. If no values are selected, no inputs are created or sent to the server. These are contained within the `<div class="outputs">` sub-element.
 
 The inputs will have the following names/values *(where the **DateTimePicker** prefix will be the value selected from the inputName parameter as detailed above )*
 
@@ -69,3 +69,10 @@ The inputs will have the following names/values *(where the **DateTimePicker** p
 | **DateTimePicker-count** | The number of dates selected | Integer |
 | **DateTimePicker-date-X** | Where **X** is the incrementation of the count number, i.e. if this is the first date X = 0, second date X = 1 | YYYY-MM-DD |
 | **DateTimePicker-time** | The time selected by the user | HH:MM |
+
+For example, if a user selects the date & time of 25th December 2016 at 14:30, and the element has no ID, the inputs would be:
+```
+  <input type="hidden" id="DateTimePicker-count" name="DateTimePicker-count" value="1">
+  <input type="hidden" id="DateTimePicker-date-0" name="DateTimePicker-date-0" value="2016-12-25">
+  <input type="hidden" id="DateTimePicker-time" name="DateTimePicker-time" value="14:00">
+```
